@@ -11,9 +11,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading...</p>
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4 font-sans">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#fd5200]"></div>
+        <p className="text-xs font-bold uppercase tracking-widest text-white/60">Loading...</p>
       </div>
     );
   }
