@@ -4,10 +4,13 @@ class AuthController {
   async githubCallback(req, res) {
     try {
       const response = await authService.handleGitHubLogin(req.user);
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
-      const redirectUrl = `${frontendUrl}?token=${response.token}`;
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      
+      // Encode user data as URL parameter
+      const userParam = encodeURIComponent(JSON.stringify(response.user));
+      const redirectUrl = `${frontendUrl}/dashboard?token=${response.token}&user=${userParam}`;
 
-    res.redirect(redirectUrl);
+      res.redirect(redirectUrl);
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
