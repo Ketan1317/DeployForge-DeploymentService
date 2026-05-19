@@ -3,46 +3,37 @@ const httpProxy = require("http-proxy");
 
 const app = express();
 
-const PORT = 8000;
-
 const proxy = httpProxy.createProxyServer({});
+
+const PORT = 8000;
 
 const BASE_PATH =
   "https://ketanblob1317.z29.web.core.windows.net/__outputs";
 
-let currentProject = null;
-
 app.use((req, res) => {
   try {
-   
-    const parts = req.url.split("/").filter(Boolean);
+    const hostname = req.hostname;
 
-    if (parts.length > 0 && !req.url.startsWith("/assets")) {
-      currentProject = parts[0];
+    // project123.localhost
+    const subdomain = hostname.split(".")[0];
+
+    if (
+      !subdomain ||
+      subdomain === "localhost"
+    ) {
+      return res.send("No project found");
     }
 
-    if (!currentProject) {
-      return res.send("Project not found");
-    }
+    const target =
+      `${BASE_PATH}/${subdomain}`;
 
-    let target = "";
-
-    if (req.url.startsWith("/assets")) {
-      target =
-        `${BASE_PATH}/${currentProject}`;
-    }
-
-    else {
-      target =
-        `${BASE_PATH}/${currentProject}`;
-    }
-
-    console.log("Proxy Target:", target);
+    console.log("Target:", target);
 
     proxy.web(req, res, {
       target,
       changeOrigin: true,
     });
+
   } catch (error) {
     console.error(error);
 
@@ -51,16 +42,15 @@ app.use((req, res) => {
 });
 
 proxy.on("proxyReq", (proxyReq, req) => {
-  const parts = req.url.split("/").filter(Boolean);
 
-  if (parts.length === 1 && !req.url.startsWith("/assets")) {
+  if (req.url === "/") {
     proxyReq.path =
-      `/__outputs/${currentProject}/index.html`;
+      `/__outputs/${req.hostname.split(".")[0]}/index.html`;
   }
 
-  else if (req.url.startsWith("/assets")) {
+  else {
     proxyReq.path =
-      `/__outputs/${currentProject}${req.url}`;
+      `/__outputs/${req.hostname.split(".")[0]}${req.url}`;
   }
 });
 
@@ -72,6 +62,6 @@ proxy.on("error", (err, req, res) => {
 
 app.listen(PORT, () => {
   console.log(
-    `🚀 Proxy running on http://localhost:${PORT}`
+    `🚀 Proxy running on port ${PORT}`
   );
 });
