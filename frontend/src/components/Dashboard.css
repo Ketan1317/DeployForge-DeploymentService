@@ -1,6 +1,8 @@
+/* Dashboard Layout */
 .dashboard {
   min-height: calc(100vh - 70px);
   background: #f8f9fa;
+  animation: fadeIn 0.5s ease;
 }
 
 .dashboard-container {
@@ -9,27 +11,34 @@
   padding: 40px 20px;
 }
 
+/* Welcome Section */
 .welcome-section {
   margin-bottom: 50px;
   text-align: center;
+  animation: slideInDown 0.5s ease;
 }
 
 .welcome-section h1 {
-  margin: 0 0 10px 0;
+  margin: 0 0 15px 0;
   font-size: 2.5rem;
   color: #333;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .welcome-section p {
   margin: 0;
   font-size: 1.1rem;
   color: #666;
+  line-height: 1.6;
 }
 
+/* Dashboard Content Grid */
 .dashboard-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
+  align-items: flex-start;
 }
 
 .form-section {
@@ -37,11 +46,18 @@
   justify-content: flex-start;
 }
 
+/* Deployments Section */
 .deployments-section {
   background: white;
   border-radius: 12px;
   padding: 30px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: slideInUp 0.5s ease;
+  transition: all 0.3s ease;
+}
+
+.deployments-section:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
 }
 
 .deployments-header {
@@ -49,28 +65,42 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 .deployments-section h2 {
   margin: 0;
   color: #333;
   font-size: 1.5rem;
+  font-weight: 700;
 }
 
+/* Refresh Button */
 .refresh-btn {
   background: none;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  padding: 5px 10px;
+  padding: 6px 10px;
   border-radius: 6px;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .refresh-btn:hover {
   background-color: #f0f0f0;
+  transform: rotate(180deg);
 }
 
+.refresh-btn:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Loading State */
 .loading-state {
   text-align: center;
   padding: 40px 20px;
@@ -78,6 +108,7 @@
   flex-direction: column;
   align-items: center;
   gap: 15px;
+  animation: fadeIn 0.4s ease;
 }
 
 .spinner {
@@ -101,39 +132,59 @@
 .loading-state p {
   color: #666;
   margin: 0;
+  font-size: 0.95rem;
 }
 
+/* Error State */
 .error-state {
   text-align: center;
   padding: 30px 20px;
   background: #fff5f5;
-  border: 1px solid #feb2b2;
+  border: 2px solid #feb2b2;
   border-radius: 8px;
+  animation: slideInUp 0.4s ease;
 }
 
 .error-state p {
   color: #c53030;
   margin: 0 0 15px 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
+/* Retry Button */
 .retry-btn {
-  background: #c53030;
+  background: linear-gradient(135deg, #c53030 0%, #a02020 100%);
   color: white;
-  border: none;
-  padding: 8px 16px;
+  border: 2px solid transparent;
+  padding: 10px 20px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
 }
 
 .retry-btn:hover {
-  background: #a02020;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(197, 48, 48, 0.3);
 }
 
+.retry-btn:active {
+  transform: translateY(0);
+}
+
+.retry-btn:focus-visible {
+  outline: 2px solid #c53030;
+  outline-offset: 2px;
+}
+
+/* Empty State */
 .empty-state {
   text-align: center;
   padding: 40px 20px;
+  animation: slideInUp 0.4s ease;
 }
 
 .empty-icon {
@@ -142,36 +193,43 @@
 }
 
 .empty-state p {
-  margin: 0 0 5px 0;
+  margin: 0 0 8px 0;
   color: #666;
+  font-size: 0.95rem;
 }
 
 .empty-hint {
   color: #999;
   font-size: 0.9rem;
+  line-height: 1.5;
 }
 
+/* Deployments Grid */
 .deployments-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 }
 
+/* Deployment Card */
 .deployment-card {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   padding: 20px;
   transition: all 0.3s ease;
   cursor: pointer;
+  animation: slideInUp 0.4s ease;
 }
 
 .deployment-card:hover {
   border-color: #667eea;
   box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  background: #fafbfc;
 }
 
+/* Card Header */
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -184,10 +242,13 @@
   margin: 0;
   color: #333;
   font-size: 1.1rem;
+  font-weight: 600;
   flex: 1;
   word-break: break-word;
+  letter-spacing: -0.2px;
 }
 
+/* Status Badge */
 .status-badge {
   padding: 6px 12px;
   border-radius: 6px;
@@ -197,6 +258,8 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   flex-shrink: 0;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
 }
 
 .status-success {
@@ -223,6 +286,7 @@
   border: 1px solid #7dd3fc;
 }
 
+/* Deployment Detail */
 .deployment-detail {
   display: flex;
   flex-direction: column;
@@ -237,8 +301,8 @@
 
 .detail-label {
   color: #666;
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -246,6 +310,7 @@
 .detail-value {
   color: #333;
   word-break: break-all;
+  line-height: 1.5;
 }
 
 .detail-link {
@@ -253,25 +318,84 @@
   text-decoration: none;
   font-weight: 500;
   word-break: break-all;
+  transition: all 0.3s ease;
 }
 
 .detail-link:hover {
   text-decoration: underline;
+  color: #764ba2;
 }
 
-@media (max-width: 1024px) {
-  .dashboard-content {
-    grid-template-columns: 1fr;
+.detail-link:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tablet Responsiveness (1024px and below) */
+@media (max-width: 1024px) {
+  .dashboard-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .welcome-section h1 {
+    font-size: 2rem;
+  }
+
+  .deployments-section {
+    padding: 25px;
+  }
+}
+
+/* Mobile Responsiveness (768px and below) */
 @media (max-width: 768px) {
+  .dashboard {
+    min-height: auto;
+  }
+
   .dashboard-container {
     padding: 20px 15px;
   }
 
+  .welcome-section {
+    margin-bottom: 30px;
+  }
+
   .welcome-section h1 {
     font-size: 1.8rem;
+    margin-bottom: 10px;
   }
 
   .welcome-section p {
@@ -284,16 +408,31 @@
 
   .deployments-section {
     padding: 20px;
+    border-radius: 10px;
+  }
+
+  .deployments-section h2 {
+    font-size: 1.3rem;
   }
 
   .deployments-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .refresh-btn {
+    align-self: flex-end;
   }
 
   .deployments-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .deployment-card {
+    padding: 16px;
   }
 
   .card-header {
@@ -301,6 +440,62 @@
   }
 
   .deployment-title {
-    min-width: 200px;
+    min-width: 150px;
+  }
+
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 0.7rem;
+  }
+
+  .deployment-detail {
+    margin-bottom: 10px;
+  }
+
+  .detail-label {
+    font-size: 0.75rem;
+  }
+
+  .detail-value {
+    font-size: 0.85rem;
+  }
+}
+
+/* Small Mobile Responsiveness (480px and below) */
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 15px 12px;
+  }
+
+  .welcome-section h1 {
+    font-size: 1.5rem;
+  }
+
+  .welcome-section p {
+    font-size: 0.95rem;
+  }
+
+  .deployments-section {
+    padding: 15px;
+  }
+
+  .deployments-section h2 {
+    font-size: 1.2rem;
+  }
+
+  .deployment-card {
+    padding: 14px;
+  }
+
+  .deployment-title {
+    font-size: 1rem;
+  }
+
+  .loading-state {
+    padding: 30px 15px;
+  }
+
+  .error-state {
+    padding: 20px 15px;
   }
 }

@@ -1,4 +1,5 @@
-import React, { ReactNode, ReactElement } from 'react';
+import React from 'react';
+import type { ReactNode, ReactElement } from 'react';
 import './ErrorBoundary.css';
 
 interface ErrorBoundaryProps {
@@ -21,14 +22,14 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+  static getDerivedStateFromError(): Partial<ErrorBoundaryState> {
     return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     this.setState({
       error,
-      errorInfo: errorInfo.componentStack,
+      errorInfo: errorInfo.componentStack || null,
     });
 
     console.error('Error caught by ErrorBoundary:', error);
@@ -48,7 +49,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       return (
         <div className="error-boundary-container">
           <div className="error-boundary-content">
-            <div className="error-icon">⚠️</div>
+            <div className="error-icon">&#9888;&#65039;</div>
             <h2>Oops! Something went wrong</h2>
             <p className="error-message">
               {this.state.error?.message || 'An unexpected error occurred'}

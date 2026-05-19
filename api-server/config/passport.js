@@ -20,11 +20,18 @@ const configurePassport = () => {
           if (!user) {
             user = new User({
               githubId: profile.id,
-              username: profile.username,
+              username: profile.username || profile._json?.login || `user-${profile.id}`,
               email: profile.emails?.[0]?.value,
               avatar: profile.photos?.[0]?.value,
               profile: profile._json,
+              githubAccessToken: accessToken,
             });
+            await user.save();
+          } else {
+            user.githubAccessToken = accessToken;
+            if (!user.username) {
+              user.username = profile.username || profile._json?.login || `user-${profile.id}`;
+            }
             await user.save();
           }
 

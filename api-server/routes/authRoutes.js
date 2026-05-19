@@ -8,7 +8,7 @@ const router = express.Router();
 // GitHub OAuth
 router.get(
   "/github",
-  passport.authenticate("github", { scope: ["user:email"] })
+  passport.authenticate("github", { scope: ["user:email", "repo"] })
 );
 
 // GitHub OAuth Callback
@@ -20,5 +20,8 @@ router.get(
 
 // Get Current User
 router.get("/me", authMiddleware, authController.getCurrentUser);
+
+// Get User's GitHub Repositories
+router.get("/repos", authMiddleware, authController.getUserRepos);
 
 module.exports = router;

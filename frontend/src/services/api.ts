@@ -77,6 +77,7 @@ export const authAPI = {
     window.location.href = `${API_BASE_URL}/auth/github`;
   },
   getMe: () => apiClient.get('/auth/me'),
+  getRepos: () => apiClient.get('/auth/repos'),
   logout: () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
@@ -84,8 +85,8 @@ export const authAPI = {
 };
 
 export const deploymentAPI = {
-  createDeployment: (gitUrl: string, title: string, connectionString: string, userId: string) =>
-    apiClient.post('/project', { gitUrl, title, connectionString, userId }),
+  createDeployment: (gitUrl: string, title: string, connectionString: string) =>
+    apiClient.post('/project', { gitUrl, title, connectionString }),
   getDeployments: () => apiClient.get('/project'),
 };
 
