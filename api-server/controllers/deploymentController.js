@@ -3,17 +3,23 @@ const deploymentService = require("../services/deploymentService");
 class DeploymentController {
   async createProject(req, res) {
     try {
-      const { gitUrl, title, connectionString } = req.body;
+      const { gitUrl, title } = req.body;
       const userId = req.user._id;
       const result = await deploymentService.createDeployment(
         gitUrl,
         title,
-        connectionString,
-        userId
+        userId,
       );
       res.json(result);
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+      console.error("DEPLOY ERROR:");
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: error.stack,
+      });
     }
   }
 

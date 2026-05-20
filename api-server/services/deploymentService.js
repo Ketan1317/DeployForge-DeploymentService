@@ -6,8 +6,7 @@ const ecsClient = new ECSClient({
   region: "ap-southeast-2",
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey:
-      process.env.AWS_SECRET_ACCESS_KEY
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
@@ -17,13 +16,21 @@ const ECS_CONFIG = {
 };
 
 class DeploymentService {
-  async createDeployment(gitUrl, title, connectionString, userId) {
+  async createDeployment(gitUrl, title, userId) {
     try {
       if (!gitUrl) {
         throw new Error("Git URL is required");
       }
 
-      const slug = title ? title.toLowerCase().replace(/\s+/g, "-") : generateSlug();
+      const baseSlug = (
+  title || generateSlug()
+)
+  .toLowerCase()
+  .replace(/[^a-z0-9-]/g, "-")
+  .replace(/-+/g, "-");
+
+const slug =
+  `${baseSlug}-${Date.now()}`;
 
       const deployment = await Deployment.create({
         userId,
@@ -58,7 +65,10 @@ class DeploymentService {
                 { name: "GIT_REPO_URL", value: gitUrl },
                 { name: "PROJECT_ID", value: slug },
                 { name: "USER_ID", value: userId.toString() },
-                { name: "AZURE_STORAGE_CONNECTION_STRING", value: connectionString },
+                {
+                  name: "AZURE_STORAGE_CONNECTION_STRING",
+                  value: process.env.AZURE_STORAGE_CONNECTION_STRING,
+                },
               ],
             },
           ],
