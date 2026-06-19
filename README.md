@@ -208,7 +208,7 @@ DeploForge
 * Custom Domains
 * SSL Certificates
 * Auto Scaling
-* CI/CD Pipelines
+* CI/CD Pipelines.
 * GitHub Webhooks
 * Rollback Deployments
 * Team Workspaces
