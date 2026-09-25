@@ -215,10 +215,4 @@ DeploForge
 * Deployment Analytics
 * Kubernetes Support
 
----
 
-# 👨‍💻 Author
-
-**Ketan Goyal**
-
-DeploForge is a cloud-native deployment platform designed to simplify application deployment through automated builds, containerization, cloud orchestration, and real-time monitoring.
