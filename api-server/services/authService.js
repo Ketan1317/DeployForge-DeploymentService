@@ -67,6 +67,7 @@ class AuthService {
         language: repo.language,
         updatedAt: repo.updated_at,
       }));
+      console.log(mapped)
 
       return { success: true, data: mapped };
     } catch (error) {

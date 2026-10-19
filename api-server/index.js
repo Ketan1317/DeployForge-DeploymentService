@@ -40,7 +40,6 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`\n✓ API Server running on port ${PORT}`);
-  console.log(`✓ GitHub OAuth: ${process.env.GITHUB_CALLBACK_URL}`);
-  console.log(`✓ MongoDB: Connected\n`);
+  console.log(`\n API Server running on port ${PORT}`);
+  console.log(` GitHub OAuth: ${process.env.GITHUB_CALLBACK_URL}`);
 });

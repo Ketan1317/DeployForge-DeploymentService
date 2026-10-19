@@ -22,15 +22,12 @@ class DeploymentService {
         throw new Error("Git URL is required");
       }
 
-      const baseSlug = (
-  title || generateSlug()
-)
-  .toLowerCase()
-  .replace(/[^a-z0-9-]/g, "-")
-  .replace(/-+/g, "-");
+      const baseSlug = (title || generateSlug())
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, "-")
+        .replace(/-+/g, "-");
 
-const slug =
-  `${baseSlug}-${Date.now()}`;
+      const slug = `${baseSlug}-${Date.now()}`;
 
       const deployment = await Deployment.create({
         userId,
@@ -79,7 +76,7 @@ const slug =
 
       return {
         success: true,
-        status: "queued",
+        status: "success",
         data: {
           id: deployment._id,
           slug,

@@ -43,7 +43,6 @@ const configurePassport = () => {
     )
   );
 
-  // ==================== JWT STRATEGY ====================
   passport.use(
     new JWTStrategy(
       {
@@ -64,7 +63,6 @@ const configurePassport = () => {
     )
   );
 
-  // ==================== SERIALIZATION ====================
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
@@ -78,7 +76,7 @@ const configurePassport = () => {
     }
   });
 
-  console.log("✓ Passport Configured");
+  console.log(" Passport Configured");
 };
 
 module.exports = configurePassport;

@@ -65,7 +65,7 @@ export const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess }) => 
       await deploymentAPI.createDeployment(
         selectedRepo,
         getSelectedRepoName(),
-        connectionString
+        // connectionString
       );
 
       setSuccess(true);

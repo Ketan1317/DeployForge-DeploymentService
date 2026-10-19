@@ -7,8 +7,7 @@ const proxy = httpProxy.createProxyServer({});
 
 const PORT = 8000;
 
-const BASE_PATH =
-  "https://ketanblob1317.z29.web.core.windows.net/__outputs";
+const BASE_PATH = "https://ketanblob1317.z29.web.core.windows.net/__outputs";
 
 app.use((req, res) => {
   try {

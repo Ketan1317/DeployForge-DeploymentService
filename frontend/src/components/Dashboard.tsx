@@ -185,7 +185,7 @@ export const Dashboard: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <div>{getStatusBadge(deployment.status)}</div>
+                      {/* <div>{getStatusBadge(deployment.status)}</div> */}
                     </div>
 
                     <div className="space-y-3 border-t border-white/5 pt-4 mt-4">

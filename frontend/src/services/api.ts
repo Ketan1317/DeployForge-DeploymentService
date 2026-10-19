@@ -85,8 +85,8 @@ export const authAPI = {
 };
 
 export const deploymentAPI = {
-  createDeployment: (gitUrl: string, title: string, connectionString: string) =>
-    apiClient.post('/project', { gitUrl, title, connectionString }),
+  createDeployment: (gitUrl: string, title: string) =>
+    apiClient.post('/project', { gitUrl, title }),
   getDeployments: () => apiClient.get('/project'),
 };
 
