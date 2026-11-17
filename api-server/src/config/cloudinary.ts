@@ -1,4 +1,4 @@
-const cloudinary = require("cloudinary").v2;
+import { v2 as cloudinary } from 'cloudinary';
 
 const configureCloudinary = () => {
   cloudinary.config({
@@ -7,8 +7,8 @@ const configureCloudinary = () => {
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
 
-  console.log(" Cloudinary Configured");
+  console.log(' Cloudinary Configured');
   return cloudinary;
 };
 
-module.exports = configureCloudinary;
+export default configureCloudinary;

@@ -25,12 +25,6 @@ export const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess }) => 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const connectionString = import.meta.env.VITE_AZURE_CONNECTION_STRING || '';
-
-  useEffect(() => {
-    fetchRepos();
-  }, []);
-
   const fetchRepos = async () => {
     setLoadingRepos(true);
     setRepoError(null);
@@ -47,6 +41,32 @@ export const DeploymentForm: React.FC<DeploymentFormProps> = ({ onSuccess }) => 
       setLoadingRepos(false);
     }
   };
+
+  useEffect(() => {
+    let ignore = false;
+    authAPI
+      .getRepos()
+      .then((response) => {
+        if (!ignore) {
+          const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+          setRepos(data);
+          if (data.length > 0) {
+            setSelectedRepo(data[0].cloneUrl);
+          }
+          setLoadingRepos(false);
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setRepoError(err instanceof Error ? err.message : 'Failed to fetch repositories');
+          setLoadingRepos(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const getSelectedRepoName = (): string => {
     const repo = repos.find((r) => r.cloneUrl === selectedRepo);

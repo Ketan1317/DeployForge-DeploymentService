@@ -1,19 +1,31 @@
-const passport = require("passport");
-const GitHubStrategy = require("passport-github2").Strategy;
-const JWTStrategy = require("passport-jwt").Strategy;
-const ExtractJwt = require("passport-jwt").ExtractJwt;
-const User = require("../models/User");
+import passport from 'passport';
+import { Strategy as GitHubStrategy, Profile as GitHubProfile } from 'passport-github2';
+import { Strategy as JWTStrategy, ExtractJwt } from 'passport-jwt';
+import User from '../models/User';
+import { IUserDocument, JwtPayload } from '../types';
 
-const configurePassport = () => {
+interface ExtendedGitHubProfile extends GitHubProfile {
+  _json?: {
+    login?: string;
+    [key: string]: unknown;
+  };
+}
+
+const configurePassport = (): void => {
   // ==================== GITHUB OAUTH ====================
   passport.use(
     new GitHubStrategy(
       {
-        clientID: process.env.GITHUB_CLIENT_ID,
-        clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        callbackURL: process.env.GITHUB_CALLBACK_URL,
+        clientID: process.env.GITHUB_CLIENT_ID || '',
+        clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+        callbackURL: process.env.GITHUB_CALLBACK_URL || '',
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (
+        accessToken: string,
+        _refreshToken: string,
+        profile: ExtendedGitHubProfile,
+        done: (error: unknown, user?: IUserDocument | false) => void
+      ) => {
         try {
           let user = await User.findOne({ githubId: profile.id });
 
@@ -47,9 +59,12 @@ const configurePassport = () => {
     new JWTStrategy(
       {
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey: process.env.JWT_SECRET,
+        secretOrKey: process.env.JWT_SECRET || '',
       },
-      async (jwtPayload, done) => {
+      async (
+        jwtPayload: JwtPayload,
+        done: (error: unknown, user?: IUserDocument | false) => void
+      ) => {
         try {
           const user = await User.findById(jwtPayload.userId);
           if (user) {
@@ -63,11 +78,11 @@ const configurePassport = () => {
     )
   );
 
-  passport.serializeUser((user, done) => {
+  passport.serializeUser((user: Express.User, done) => {
     done(null, user.id);
   });
 
-  passport.deserializeUser(async (id, done) => {
+  passport.deserializeUser(async (id: string, done) => {
     try {
       const user = await User.findById(id);
       done(null, user);
@@ -76,7 +91,7 @@ const configurePassport = () => {
     }
   });
 
-  console.log(" Passport Configured");
+  console.log(' Passport Configured');
 };
 
-module.exports = configurePassport;
+export default configurePassport;

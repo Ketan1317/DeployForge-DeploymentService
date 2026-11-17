@@ -2,8 +2,10 @@
   "name": "build-server",
   "version": "1.0.0",
   "description": "",
-  "main": "script.js",
+  "main": "dist/script.js",
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/script.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,8 +13,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@azure/storage-blob": "^12.31.0",
+    "@aws-sdk/client-s3": "^3.1170.0",
     "dotenv": "^17.4.2",
     "mime-types": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^2.1.4",
+    "@types/node": "^25.9.1",
+    "typescript": "^5.9.3"
   }
 }

@@ -24,38 +24,48 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error] = useState<string | null>(null);
-
-  // Initialize from localStorage
-  useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
-    const storedUser = localStorage.getItem('user');
-
-    if (storedToken) {
-      setToken(storedToken);
-    }
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-
-    setLoading(false);
-  }, []);
-
-  // Check for OAuth callback
-  useEffect(() => {
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
     const params = new URLSearchParams(window.location.search);
     const tokenFromUrl = params.get('token');
-    const userFromUrl = params.get('user');
-
-    if (tokenFromUrl && userFromUrl) {
-      const parsedUser = JSON.parse(decodeURIComponent(userFromUrl));
+    if (tokenFromUrl) {
       localStorage.setItem('authToken', tokenFromUrl);
-      localStorage.setItem('user', JSON.stringify(parsedUser));
-      setToken(tokenFromUrl);
-      setUser(parsedUser);
+      return tokenFromUrl;
+    }
+    return localStorage.getItem('authToken');
+  });
+
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    const userFromUrl = params.get('user');
+    if (userFromUrl) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(userFromUrl)) as User;
+        localStorage.setItem('user', JSON.stringify(parsed));
+        return parsed;
+      } catch {
+        // ignore parse error
+      }
+    }
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      try {
+        return JSON.parse(stored) as User;
+      } catch {
+        // ignore parse error
+      }
+    }
+    return null;
+  });
+
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
+
+  // Clean URL parameters after OAuth callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('token') || params.get('user')) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);

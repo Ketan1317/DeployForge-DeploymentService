@@ -1,7 +1,8 @@
-const mongoose = require("mongoose");
+import mongoose, { Schema } from "mongoose";
+import { IDeploymentDocument } from "../types";
 
-const deploymentSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+const deploymentSchema = new Schema<IDeploymentDocument>({
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   title: { type: String, required: true },
   gitUrl: { type: String, required: true },
   slug: { type: String, required: true, unique: true },
@@ -10,9 +11,12 @@ const deploymentSchema = new mongoose.Schema({
     enum: ["queued", "deploying", "success", "failed"],
     default: "queued",
   },
-  url: String,
+  url: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Deployment", deploymentSchema);
+export default mongoose.model<IDeploymentDocument>(
+  "Deployment",
+  deploymentSchema,
+);

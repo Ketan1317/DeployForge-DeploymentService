@@ -33,7 +33,27 @@ export const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchDeployments();
+    let ignore = false;
+    deploymentAPI
+      .getDeployments()
+      .then((response) => {
+        if (!ignore) {
+          const data = Array.isArray(response.data) ? response.data : response.data.data || [];
+          setDeployments(data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setError('Failed to fetch deployments');
+          console.error(err);
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const handleDeploymentSuccess = () => {
@@ -185,7 +205,7 @@ export const Dashboard: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      {/* <div>{getStatusBadge(deployment.status)}</div> */}
+                      <div>{getStatusBadge(deployment.status)}</div>
                     </div>
 
                     <div className="space-y-3 border-t border-white/5 pt-4 mt-4">
