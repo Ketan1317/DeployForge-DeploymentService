@@ -1,3 +1,4 @@
+
 import { Document, Types } from 'mongoose';
 
 export interface IUser {
@@ -15,7 +16,11 @@ export interface IUserDocument extends IUser, Document {
   _id: Types.ObjectId;
 }
 
-export type DeploymentStatus = 'queued' | 'deploying' | 'success' | 'failed';
+export type DeploymentStatus =
+  | 'queued'
+  | 'deploying'
+  | 'success'
+  | 'failed';
 
 export interface IDeployment {
   userId: Types.ObjectId;
@@ -24,6 +29,10 @@ export interface IDeployment {
   slug: string;
   status: DeploymentStatus;
   url?: string;
+
+  // AWS ECS task tracking
+  taskArn?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -100,7 +109,7 @@ export interface CreateDeploymentData {
 
 export interface CreateDeploymentResult {
   success: boolean;
-  status: string;
+  status: DeploymentStatus;
   data: CreateDeploymentData;
 }
 

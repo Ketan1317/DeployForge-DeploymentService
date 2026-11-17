@@ -1,62 +1,61 @@
-import express, { Request, Response } from 'express';
+
+import express from 'express';
 import httpProxy from 'http-proxy';
-import http from 'http';
-import net from 'net';
+import 'dotenv/config';
 
 const app = express();
 const proxy = httpProxy.createProxyServer({});
-const PORT = 8000;
 
-const BASE_PATH = 'https://ketanblob1317.z29.web.core.windows.net/__outputs';
+const PORT = Number(process.env.PORT) || 8000;
+const REGION = process.env.AWS_REGION || 'ap-southeast-2';
+const BUCKET = process.env.S3_BUCKET_NAME || 'ketan-deployment-builds';
 
-app.use((req: Request, res: Response) => {
-  try {
-    const hostname = req.hostname;
+const S3_BASE_URL =
+  `https://${BUCKET}.s3.${REGION}.amazonaws.com`;
 
-    // project123.localhost
-    const subdomain = hostname.split('.')[0];
+app.use((req, res) => {
+  const hostname = req.hostname;
+  const subdomain = hostname.split('.')[0];
 
-    if (!subdomain || subdomain === 'localhost') {
-      res.send('No project found');
-      return;
-    }
+  if (!subdomain || subdomain === 'localhost') {
+    res.status(404).send('Project not found');
+    return;
+  }
 
-    const target = `${BASE_PATH}/${subdomain}`;
+  const requestedPath = req.url === '/' ? '/index.html' : req.url;
 
-    console.log('Target:', target);
+  const targetPath =
+    `/deployments/${subdomain}${requestedPath}`;
 
-    proxy.web(req, res, {
-      target,
-      changeOrigin: true,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Proxy Error');
+  console.log(`[${subdomain}] ${targetPath}`);
+
+  proxy.web(req, res, {
+    target: S3_BASE_URL,
+    changeOrigin: true,
+    selfHandleResponse: false,
+    headers: {},
+  });
+});
+
+proxy.on('proxyReq', (proxyReq, req) => {
+  const hostname = req.headers.host || '';
+  const subdomain = hostname.split('.')[0];
+
+  const requestedPath = req.url === '/' ? '/index.html' : req.url;
+
+  proxyReq.path =
+    `/deployments/${subdomain}${requestedPath}`;
+});
+
+proxy.on('error', (error, _req, res) => {
+  console.error('Proxy error:', error);
+
+  if ('writeHead' in res && !res.headersSent) {
+    res.writeHead(502, { 'Content-Type': 'text/plain' });
+    res.end('Deployment unavailable');
   }
 });
 
-proxy.on('proxyReq', (proxyReq: http.ClientRequest, req: http.IncomingMessage) => {
-  const host = req.headers.host || '';
-  const subdomain = host.split('.')[0];
-
-  if (req.url === '/') {
-    proxyReq.path = `/__outputs/${subdomain}/index.html`;
-  } else {
-    proxyReq.path = `/__outputs/${subdomain}${req.url}`;
-  }
+app.listen(PORT, () => {
+  console.log(`S3 reverse proxy running on port ${PORT}`);
 });
-
-proxy.on('error', (err: Error, _req: http.IncomingMessage, res: http.ServerResponse | net.Socket) => {
-  console.error(err);
-
-  if ('writeHead' in res && typeof res.writeHead === 'function') {
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end('Deployment not found');
-  }
-});
-
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Proxy running on port ${PORT}`);
-});
-
-export default server;

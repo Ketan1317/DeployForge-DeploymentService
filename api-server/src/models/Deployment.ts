@@ -11,6 +11,9 @@ const deploymentSchema = new Schema<IDeploymentDocument>({
     enum: ["queued", "deploying", "success", "failed"],
     default: "queued",
   },
+  taskArn: {
+    type: String,
+  },
   url: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
