@@ -25,7 +25,6 @@ router.get('/me', authMiddleware, (req, res) => {
   void authController.getCurrentUser(req, res);
 });
 
-// Get User's GitHub Repositories
 router.get('/repos', authMiddleware, (req, res) => {
   void authController.getUserRepos(req, res);
 });

@@ -1,12 +1,12 @@
-import { Request, Response } from 'express';
-import deploymentService from '../services/deploymentService';
-import { IUserDocument } from '../types';
+import { Request, Response } from "express";
+import deploymentService from "../services/deploymentService";
+import { IUserDocument } from "../types";
 
 export class DeploymentController {
   async createProject(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ success: false, error: 'Unauthorized' });
+        res.status(401).json({ success: false, error: "Unauthorized" });
         return;
       }
 
@@ -14,18 +14,19 @@ export class DeploymentController {
       const userId = (req.user as IUserDocument)._id;
 
       if (!gitUrl) {
-        res.status(400).json({ success: false, error: 'Git URL is required' });
+        res.status(400).json({ success: false, error: "Git URL is required" });
         return;
       }
-
+      const deploymentTitle = title?.trim() || `Deployment-${Date.now()}`;
+      
       const result = await deploymentService.createDeployment(
         gitUrl,
-        title,
-        userId
+        deploymentTitle,
+        userId,
       );
       res.json(result);
     } catch (error) {
-      console.error('DEPLOY ERROR:');
+      console.error("DEPLOY ERROR:");
       console.error(error);
 
       const message = error instanceof Error ? error.message : String(error);
@@ -42,7 +43,7 @@ export class DeploymentController {
   async getProjects(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
-        res.status(401).json({ success: false, error: 'Unauthorized' });
+        res.status(401).json({ success: false, error: "Unauthorized" });
         return;
       }
 

@@ -12,6 +12,7 @@ import configurePassport from './config/passport';
 import authRoutes from './routes/authRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import deploymentRoutes from './routes/deploymentRoutes';
+import deploymentService from './services/deploymentService';
 
 interface CustomHttpError extends Error {
   status?: number;
@@ -32,7 +33,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-void connectDB();
+void connectDB().then(() => {
+  deploymentService.startTaskMonitor();
+});
 configureCloudinary();
 configurePassport();
 app.use(passport.initialize());

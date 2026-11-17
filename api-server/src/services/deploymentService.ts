@@ -1,174 +1,98 @@
-
 import {
   ECSClient,
-  RunTaskCommand,
-} from '@aws-sdk/client-ecs';
+  DescribeTasksCommand,
+} from "@aws-sdk/client-ecs";
 
-import { generateSlug } from 'random-word-slugs';
-import { Types } from 'mongoose';
+import { deploymentQueue } from "../queues/deploymentQueue";
+import { Types } from "mongoose";
 
-import Deployment from '../models/Deployment';
+import Deployment from "../models/Deployment";
 
 import {
-  CreateDeploymentResult,
   GetDeploymentsResult,
   DeploymentSummary,
-} from '../types';
+} from "../types";
+
 
 const ecsClient = new ECSClient({
-  region: process.env.AWS_REGION || 'ap-southeast-2',
+  region: process.env.AWS_REGION || "ap-southeast-2",
 });
 
 export class DeploymentService {
+  private monitorTimer?: ReturnType<typeof setInterval>;
+  private isCheckingTasks = false;
+
   async createDeployment(
     gitUrl: string,
-    title?: string,
-    userId?: Types.ObjectId | string
-  ): Promise<CreateDeploymentResult> {
-    let deploymentId: Types.ObjectId | undefined;
+    title: string,
+    userId: Types.ObjectId,
+  ) {
+    if (!gitUrl || !userId) {
+      throw new Error("Git URL and user ID are required");
+    }
+
+    const baseSlug = title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const slug = `${baseSlug || "deployment"}-${Date.now()}`;
+
+    // Create deployment record first
+    const deployment = await Deployment.create({
+      userId,
+      title,
+      gitUrl,
+      slug,
+      status: "queued",
+    });
 
     try {
-      if (!gitUrl) throw new Error('Git URL is required');
-      if (!userId) throw new Error('User ID is required');
-
-      // Read configuration when the request arrives.
-      const cluster = process.env.AWS_CLUSTER;
-      const taskDefinition = process.env.AWS_TASK;
-      const region = process.env.AWS_REGION || 'ap-southeast-2';
-      const bucket = process.env.S3_BUCKET_NAME;
-      const subnets = (process.env.AWS_SUBNETS || '')
-        .split(',')
-        .map(value => value.trim())
-        .filter(Boolean);
-      const securityGroup = process.env.AWS_SECURITY_GROUP;
-
-      const missing = [
-        !cluster && 'AWS_CLUSTER',
-        !taskDefinition && 'AWS_TASK',
-        !bucket && 'S3_BUCKET_NAME',
-        subnets.length === 0 && 'AWS_SUBNETS',
-        !securityGroup && 'AWS_SECURITY_GROUP',
-      ].filter(Boolean);
-
-      if (missing.length > 0) {
-        throw new Error(`Missing AWS configuration: ${missing.join(', ')}`);
-      }
-
-      const baseSlug = (title || generateSlug())
-        .toLowerCase()
-        .replace(/[^a-z0-9-]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-
-      const slug = `${baseSlug}-${Date.now()}`;
-
-      const deployment = await Deployment.create({
-        userId,
-        title: title || slug,
-        gitUrl,
-        slug,
-        status: 'queued',
-        url: `http://${slug}.localhost:8000`,
-      });
-
-      deploymentId = deployment._id;
-
-      console.log('Starting ECS deployment:', {
-        cluster,
-        taskDefinition,
-        projectId: slug,
-        region,
-      });
-
-      const command = new RunTaskCommand({
-        cluster,
-        taskDefinition,
-        launchType: 'FARGATE',
-        count: 1,
-
-        networkConfiguration: {
-          awsvpcConfiguration: {
-            subnets,
-            securityGroups: [securityGroup!],
-            assignPublicIp: 'ENABLED',
-          },
+      // Add job to Redis queue
+      await deploymentQueue.add(
+        "build-deployment",
+        {
+          deploymentId: deployment._id.toString(),
+          gitUrl,
+          slug,
+          userId: userId.toString(),
         },
-
-        overrides: {
-          containerOverrides: [
-            {
-              name: 'builder-image',
-              environment: [
-                { name: 'GIT_REPO_URL', value: gitUrl },
-                { name: 'PROJECT_ID', value: slug },
-                { name: 'USER_ID', value: userId.toString() },
-                { name: 'AWS_REGION', value: region },
-                { name: 'S3_BUCKET_NAME', value: bucket },
-              ],
-            },
-          ],
+        {
+          jobId: deployment._id.toString(),
         },
-      });
+      );
 
-      const response = await ecsClient.send(command);
-
-      if (response.failures?.length) {
-        throw new Error(
-          response.failures
-            .map(failure => failure.reason || failure.detail || 'Unknown ECS failure')
-            .join('; ')
-        );
-      }
-
-      const taskArn = response.tasks?.[0]?.taskArn;
-
-      if (!taskArn) {
-        throw new Error('ECS accepted no task and returned no task ARN');
-      }
-
-      await Deployment.findByIdAndUpdate(deployment._id, {
-        status: 'deploying',
-        taskArn,
-        updatedAt: new Date(),
-      });
-
+      // Return immediately; worker handles ECS
       return {
         success: true,
-        status: 'deploying',
+        status: "queued",
         data: {
           id: deployment._id,
-          slug,
           title: deployment.title,
-          gitUrl: deployment.gitUrl,
-          url: deployment.url,
-          userId,
+          slug: deployment.slug,
         },
       };
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      // Queue insertion failed, so mark the deployment failed
+      await Deployment.findByIdAndUpdate(deployment._id, {
+        status: "failed",
+        updatedAt: new Date(),
+      });
 
-      if (deploymentId) {
-        await Deployment.findByIdAndUpdate(deploymentId, {
-          status: 'failed',
-          updatedAt: new Date(),
-        });
-      }
-
-      console.error('Deployment creation failed:', error);
-
-      throw new Error(`Deployment creation failed: ${message}`);
+      throw error;
     }
   }
 
   async getDeployments(
-    userId: Types.ObjectId | string
+    userId: Types.ObjectId | string,
   ): Promise<GetDeploymentsResult> {
     try {
       const deployments = await Deployment.find({ userId })
         .sort({ createdAt: -1 })
         .lean();
 
-      const mapped: DeploymentSummary[] = deployments.map(d => ({
+      const mapped: DeploymentSummary[] = deployments.map((d) => ({
         ...d,
         id: d._id.toString(),
       }));
@@ -177,6 +101,96 @@ export class DeploymentService {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to fetch deployments: ${message}`);
+    }
+  }
+
+  // Start the background ECS monitor.
+  startTaskMonitor(): void {
+    if (this.monitorTimer) return;
+    console.log("ECS task monitor started");
+
+    // Check immediately, then every 10 seconds.
+    void this.checkDeploymentTasks();
+
+    this.monitorTimer = setInterval(() => {
+      void this.checkDeploymentTasks();
+    }, 10_000);
+  }
+
+  // Find deployments that are still running.
+  private async checkDeploymentTasks(): Promise<void> {
+    if (this.isCheckingTasks) return;
+
+    this.isCheckingTasks = true;
+
+    try {
+      const deployments = await Deployment.find({
+        status: "deploying",
+        taskArn: { $exists: true, $ne: null },
+      }).select("_id slug taskArn");
+
+      for (const deployment of deployments) {
+        if (!deployment.taskArn) continue;
+
+        try {
+          const response = await ecsClient.send(
+            new DescribeTasksCommand({
+              cluster: process.env.AWS_CLUSTER,
+              tasks: [deployment.taskArn],
+            }),
+          );
+
+          const task = response.tasks?.[0];
+
+          if (!task) {
+            console.warn(
+              `ECS task not found for deployment ${deployment.slug}`,
+            );
+            continue;
+          }
+
+          if (task.lastStatus !== "STOPPED") {
+            continue;
+          }
+
+          const builderContainer = task.containers?.find(
+            (container) => container.name === "builder-image",
+          );
+
+          const exitCode = builderContainer?.exitCode;
+
+          const successful = exitCode === 0;
+
+          await Deployment.findByIdAndUpdate(deployment._id, {
+            status: successful ? "success" : "failed",
+            updatedAt: new Date(),
+          });
+
+          console.log(
+            `Deployment ${deployment.slug}: ${
+              successful ? "SUCCESS" : "FAILED"
+            }`,
+          );
+
+          if (!successful) {
+            console.error("ECS task failure:", {
+              slug: deployment.slug,
+              exitCode,
+              stoppedReason: task.stoppedReason,
+              containerReason: builderContainer?.reason,
+            });
+          }
+        } catch (error) {
+          console.error(
+            `Failed to check ECS task for ${deployment.slug}:`,
+            error,
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Deployment monitor error:", error);
+    } finally {
+      this.isCheckingTasks = false;
     }
   }
 }

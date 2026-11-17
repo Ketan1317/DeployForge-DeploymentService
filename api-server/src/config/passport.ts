@@ -12,7 +12,7 @@ interface ExtendedGitHubProfile extends GitHubProfile {
 }
 
 const configurePassport = (): void => {
-  // ==================== GITHUB OAUTH ====================
+  // GITHUB OAUTH
   passport.use(
     new GitHubStrategy(
       {
